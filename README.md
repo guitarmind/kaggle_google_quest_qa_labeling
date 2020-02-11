@@ -1,5 +1,4 @@
-# 30th Sliver Solution (BERT variants with Discovered Post-Processing Magic)
-===========================================================================
+# 30th Sliver Solution - BERT variants with Discovered Post-Processing Magic
 
 ## Text Preprocessing
 
@@ -45,7 +44,7 @@ https://github.com/NVIDIA/tensorflow-determinism
 
 Lost of people were discussing about what is the actual trick/magic that can boost the Spearman correlation score. I was originally having no clues about it, but after studying the definition of Spearman correlation and the patterns inside the traing set labels, I discovered that we could utilize fixed percentiles of label values to approximate to the optimal rank in each class.
 
-I search from 1 to 100 as the divisor for fixed percentile intervals using out-of-fold prediction from one of the best ensembles. I finally chose 60 as the fixed divisor because it consistently boosted the score on both local CV and public LB (+~0.03).
+I searched from 1 to 100 as the divisor for fixed percentile intervals using out-of-fold prediction from one of the best ensembles. I finally chose 60 as the fixed divisor because it consistently boosted the score on both local CV and public LB (+~0.03).
 
 The code is very simple, given the unique labels of training set as the distribution samples:
 ```
@@ -108,7 +107,7 @@ blend_score = compute_spearmanr(outputs, magic_preds)
 
 The Spearman correlation will become NaN if the output column contains 1 unique value, because in this case the standard deviation will be zero and caused divide-by-zero problem (submission error). The trick I used is to use orignal predictions from BERT models for that column.
 
-Here is a summary table of original scores versus magic-boosted scores
+Here is a summary table of original scores versus magic-boosted scores:
 | Model                  | Local CV without Magic | Local CV with Magic | Public LB with Magic | Private LB with Magic |
 |------------------------|-----------------------:|--------------------:|---------------------:|----------------------:|
 | Roberta-Base (T1)      | 0.395972               | 0.414739            | 0.43531              | 0.40019               |
