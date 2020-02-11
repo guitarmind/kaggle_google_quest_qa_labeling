@@ -5,12 +5,12 @@
 I only joined the competition in the last two weeks, therefore I didn't spend too much time on the preprocessing step, but some simple tricks did improve the score. Assume that the built-in tokenizers from pretrained BERTs could do a good job for further preprocessing.
 
  - Remove extra white spaces to make text more dense
- - Unescape html entities, like &lt;, &equals;, &gt;, ...
+ - Unescape html entities, like `&lt;`, `&equals;`, `&gt;`, ...
  - Extract plain text from html tags if found (using `get_text()` of BeautifulSoup)
 
 ## Custom BERT Models for Ensembles
 
-As a fan of ensemble learning, I always believe that the **model diversity** is the key for success. I trained 5 BERT-based models with slightly different custom layers, but they share the same structure for BERT embeddings: `[CLS] title [SEP] question [SEP]` for question text and `[CLS] answer [SEP]` for the answer text. I only used the last hidden state output embeddings of `[CLS]` token frm BERT models to combine with other layers (pooler output performed worse).
+As a fan of ensemble learning, I always believe that the **model diversity** is the key for success. I trained 5 BERT-based models with slightly different custom layers, but they share the same structure for BERT embeddings: `[CLS] title [SEP] question [SEP]` for question text and `[CLS] answer [SEP]` for the answer text. I only used the last hidden state output embeddings of `[CLS]` token from BERT models to combine with other layers (pooler output performed worse).
 
  - **Topology 1: Roberta-Base, Xlnet-Base-Cased**
 
@@ -27,7 +27,7 @@ As a fan of ensemble learning, I always believe that the **model diversity** is 
       - q_embed -> Dense(256, relu) -> Dense(21, sigmoid)
       - a_embed -> Dense(256, relu) -> Dense(9, sigmoid)
 
-I also discovered that splitting questions and answers into two seprate fully-connected layer paths works better than mixing both. It makes sense to me as the labeling of classes by the voters may focus on the content of `title+question` and `answer` separately. Categorical embedding layers for `host`, 1st token of `host` and `category` columns contributed the ensemble score.
+I also discovered that splitting questions and answers into two separate fully-connected layer paths works better than mixing both. It makes sense to me as the labeling of classes by the voters may focus on the content of `title+question` and `answer` separately. Categorical embedding layers for `host`, 1st token of `host` and `category` columns contributed the ensemble score.
 
 The learning rate of all models is fixed to `2e-5`, also applied `ReduceLROnPlateau` for LR decay (factor=0.1) and a custom early stopping callback based on validation Spearman score.
 
@@ -36,13 +36,13 @@ The final model is an weighted averge of those models with a post processing to 
 
 ## Determinism on TensorFlow 2.1
 
-Reproducibility had been an issue for tensorflow/keras, but this repo from Nvidia helped me to contorl the determinism to a great deal! Now we can get almost the same result in multiple runs using the same random seed.
+Reproducibility had been an issue for tensorflow/keras, but this repo from Nvidia helped me to control the determinism to a great deal! Now we can get almost the same result in multiple runs using the same random seed.
 This give us a clear view about the relative performance of all experiments, and then we can gradually improve the models by the right setup and approaches.
 https://github.com/NVIDIA/tensorflow-determinism
 
 ## Post Processing Magic
 
-Lost of people were discussing about what is the actual trick/magic that can boost the Spearman correlation score. I was originally having no clues about it, but after studying the definition of Spearman correlation and the patterns inside the traing set labels, I discovered that we could utilize fixed percentiles of label values to approximate to the optimal rank in each class.
+Lost of people were discussing about what is the actual trick/magic that can boost the Spearman correlation score. I was originally having no clues about it, but after studying the definition of Spearman correlation and the patterns inside the training set labels, I discovered that we could utilize fixed percentiles of label values to approximate to the optimal rank in each class.
 
 I searched from 1 to 100 as the divisor for fixed percentile intervals using out-of-fold prediction from one of the best ensembles. I finally chose 60 as the fixed divisor because it consistently boosted the score on both local CV and public LB (+~0.03).
 
@@ -105,7 +105,7 @@ magic_preds = optimize_ranks(oof_preds, exp_labels)
 blend_score = compute_spearmanr(outputs, magic_preds)
 ```
 
-The Spearman correlation will become NaN if the output column contains 1 unique value, because in this case the standard deviation will be zero and caused divide-by-zero problem (submission error). The trick I used is to use orignal predictions from BERT models for that column.
+The Spearman correlation will become NaN if the output column contains 1 unique value, because in this case the standard deviation will be zero and caused divide-by-zero problem (submission error). The trick I used is to use original predictions from BERT models for that column.
 
 Here is a summary table of original scores versus magic-boosted scores:
 | Model                  | Local CV without Magic | Local CV with Magic | Public LB with Magic | Private LB with Magic |
