@@ -31,13 +31,13 @@ I also discovered that splitting questions and answers into two separate fully-c
 
 The learning rate of all models is fixed to `2e-5`, also applied `ReduceLROnPlateau` for LR decay (factor=0.1) and a custom early stopping callback based on validation Spearman score.
 
-The final model is an weighted averge of those models with a post processing to optimize ranks.
+The final model is a weighted average of those models with a post processing to optimize ranks.
 
 
 ## Determinism on TensorFlow 2.1
 
 Reproducibility had been an issue for tensorflow/keras, but this repo from Nvidia helped me to control the determinism to a great deal! Now we can get almost the same result in multiple runs using the same random seed.
-This give us a clear view about the relative performance of all experiments, and then we can gradually improve the models by the right setup and approaches.
+This gives us a clear view about the relative performance of all experiments, and then we can gradually improve the models by the right setup and approaches.
 https://github.com/NVIDIA/tensorflow-determinism
 
 ## Post Processing Magic
@@ -60,7 +60,7 @@ array([0.        , 0.2       , 0.26666667, 0.3       , 0.33333333,
        0.86666667, 0.88888889, 0.9       , 0.93333333, 1.        ])
 ```
 
-I create 60 optimal percentiles:
+I created 60 optimal percentiles:
 ```
 denominator = 60
 q = np.arange(0, 101, 100 / denominator)
