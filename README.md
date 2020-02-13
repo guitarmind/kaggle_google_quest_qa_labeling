@@ -5,8 +5,9 @@
 I only joined the competition in the last two weeks, therefore I didn't spend too much time on the preprocessing step, but some simple tricks did improve the score. Assume that the built-in tokenizers from pretrained BERTs could do a good job for further preprocessing.
 
  - Remove extra white spaces to make text more dense
- - Unescape html entities, like `&lt;`, `&equals;`, `&gt;`, ...
+ - Unescape html entities, like `&lt ;`, `&equals ;`, `&gt ;`, ...
  - Extract plain text from html tags if found (using `get_text()` of BeautifulSoup)
+ - Remove words starting with `\` and `$` (mostly for Latex keywords and some syntax keywords)
 
 ## Custom BERT Models for Ensembles
 
